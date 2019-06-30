@@ -1,12 +1,14 @@
 require('./database/db')
 
 //for user
-const User = require('./model/User')
+const User = require('./model/user')
 const cors = require('cors')
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express();
 const path = require('path')
+const multer = require('multer')
+const Post = require('./model/post')
 
 app.set('views', 'views');
 app.set('view engine', 'html')
@@ -17,6 +19,7 @@ app.use(cors())
 app.use(bodyParser.urlencoded({
     extended: false
 }));
+app.use("/images", express.static("images"))
 
 app.post("/signup", (req, res) => {
     // console.log(req.body.name + " " + req.body.password)
@@ -25,52 +28,95 @@ app.post("/signup", (req, res) => {
         dob: req.body.dob,
         email: req.body.email,
         password: req.body.password,
-        country: req.body.country
+        country: req.body.country,
+        userType: 'user',
+        address: req.body.address,
+        city: req.body.city,
+        postal: req.body.postal,
+        academics: req.body.academics,
+        degree: req.body.degree,
+        university: req.body.university,
+        aboutMe: req.body.aboutMe
     });
     console.log(data);
 
     data.save().then(function() {
-        res.send('data inserted')
+        res.send(true)
     }).catch(function() {
-        res.send('failed');
+        res.send(false);
     })
 });
 
-app.post("/chkLogin", (req, res) => {
-    User.find({
-        username: req.body.email,
-        password: req.body.password
-    }).then(function(item) {
-        var user = JSON.stringify(item)
-        console.log(user)
-        res.redirect('/home');
-        console.log(req.body.username)
+
+//update user info
+app.post("/signup", (req, res) => {
+    var data = new User({
+        id: req.body._id,
+        name: req.body.name,
+        dob: req.body.dob,
+        email: req.body.email,
+        password: req.body.password,
+        country: req.body.country,
+        userType: 'user',
+        address: req.body.address,
+        city: req.body.city,
+        postal: req.body.postal,
+        academics: req.body.academics,
+        degree: req.body.degree,
+        university: req.body.university,
+        aboutMe: req.body.aboutMe
+    });
+    console.log(data);
+
+    data.save().then(function() {
+        res.send(true)
+    }).catch(function() {
+        res.send(false);
+    })
+});
+
+
+app.post("/chkLogin", async(req, res) => {
+
+    const user = await User.checkCrediantialsDb(req.body.email, req.body.password);
+    console.log(req.body);
+    // console.log(user.dob);
+    const token = await user.generateAuthToken();
+    res.send({
+        'token': token,
+        'id': user._id,
+        'name': user.name,
+        'dob': user.dob,
+        'userType': user.userType,
+        'email': user.email,
+        'password': user.password,
+        'country': user.country
+    });
+});
+
+
+app.get("/getUser/:id", (req, res) => {
+    console.log('user hitted')
+    const uid = req.params.id;
+    // console.log("uid" + uid)
+    User.findById({
+        _id: uid
+    }).then(function(usr) {
+        console.log("user: " + usr.name);
+        res.send(usr);
     }).catch(function(e) {
         res.send(e)
     })
 });
-app.post("/chkLoginAndroid", (req, res) => {
-    User.find({
-        username: req.body.email,
-        password: req.body.password
-    }).then(function(item) {
-        var user = JSON.stringify(item)
-        console.log(user)
-        console.log(req.body.username)
-    }).catch(function(e) {
-        res.send(e)
-    })
-});
 
-app.post("/getUser", (req, res) => {
-    User.find({
-        username: req.body.email,
-        password: req.body.password
-    }).then(function(item) {
-        var user = JSON.stringify(item)
-        console.log(user)
-        res.send(user);
-        console.log(req.body.username)
+app.post("/getPostImage", (req, res) => {
+
+    const uid = req.body.userId;
+    Post.find({
+        userId: uid
+    }).then(function(image) {
+        res.send(image);
+        console.log(image);
     }).catch(function(e) {
         res.send(e)
     })
@@ -109,6 +155,41 @@ app.post('/upload', upload.single('image'), (req, res) => {
     }))
 });
 
+
+//adding post
+app.post("/addPost", (req, res) => {
+
+    var userId = req.body.userId;
+    console.log("abc: " + req.body.userId);
+    var post = req.body.post;
+    var image = req.body.imageName;
+
+
+    var data = new Post({
+        userId: userId,
+        post: post,
+        image: image
+    });
+    console.log(data);
+
+    data.save().then(function() {
+        res.send('ok')
+            // uploadImage.single('files');
+    }).catch(function() {
+        res.send('notDone');
+    })
+});
+
+// get post
+
+app.get("/getPost", (req, res) => {
+    Post.find().then(function(post) {
+        console.log(post)
+        res.send(post);
+    }).catch(function(e) {
+        res.send(e)
+    })
+});
 
 
 
