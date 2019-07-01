@@ -21,6 +21,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use("/images", express.static("images"))
 
+
+//signup
 app.post("/signup", (req, res) => {
     // console.log(req.body.name + " " + req.body.password)
     var data = new User({
@@ -49,30 +51,33 @@ app.post("/signup", (req, res) => {
 
 
 //update user info
-app.post("/signup", (req, res) => {
-    var data = new User({
-        id: req.body._id,
-        name: req.body.name,
-        dob: req.body.dob,
-        email: req.body.email,
-        password: req.body.password,
-        country: req.body.country,
-        userType: 'user',
-        address: req.body.address,
-        city: req.body.city,
-        postal: req.body.postal,
-        academics: req.body.academics,
-        degree: req.body.degree,
-        university: req.body.university,
-        aboutMe: req.body.aboutMe
-    });
-    console.log(data);
+app.put("/updateUser", (req, res) => {
+    // var data = new User({
+    //     id: req.body.id,
+    //     name: req.body.name,
+    //     dob: req.body.dob,
+    //     email: req.body.email,
+    //     password: req.body.password,
+    //     country: req.body.country,
+    //     image: req.body.image,
+    //     userType: 'user',
+    //     address: req.body.address,
+    //     city: req.body.city,
+    //     postal: req.body.postal,
+    //     academics: req.body.academics,
+    //     degree: req.body.degree,
+    //     university: req.body.university,
+    //     aboutMe: req.body.aboutMe
+    // });
 
-    data.save().then(function() {
-        res.send(true)
-    }).catch(function() {
-        res.send(false);
-    })
+    User.findOneAndUpdate({ _id: req.body.id }, req.body, { new: true }, (err, doc) => { //find by id and update it
+        if (!err) {
+            res.json({ 'Success': 'User Edited Successfully!!' });
+        } else {
+            res.json({ 'Success': 'Error : ' + err });
+        }
+    });
+
 });
 
 
@@ -90,13 +95,13 @@ app.post("/chkLogin", async(req, res) => {
         'userType': user.userType,
         'email': user.email,
         'password': user.password,
-        'country': user.country
+        'country': user.country,
+        'image': user.image
     });
 });
 
 
 app.get("/getUser/:id", (req, res) => {
-    console.log('user hitted')
     const uid = req.params.id;
     // console.log("uid" + uid)
     User.findById({
@@ -148,7 +153,7 @@ var upload = multer({
     limits: { fileSize: 99999999 }
 });
 app.post('/upload', upload.single('image'), (req, res) => {
-    console.log(TotalImage)
+    console.log("hello" + TotalImage)
 
     res.end(JSON.stringify({
         image: TotalImage
