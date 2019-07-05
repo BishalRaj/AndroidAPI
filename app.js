@@ -9,6 +9,7 @@ const app = express();
 const path = require('path')
 const multer = require('multer')
 const Post = require('./model/post')
+var auth = require('./middleware/auth')
 
 app.set('views', 'views');
 app.set('view engine', 'html')
@@ -21,6 +22,22 @@ app.use(bodyParser.urlencoded({
 }));
 app.use("/images", express.static("images"))
 
+
+// var os = require( 'os' );
+
+// var networkInterfaces = os.networkInterfaces( );
+
+// console.log( networkInterfaces );
+
+
+var ip = require("ip");
+console.log(ip.address());
+
+// var navigator = require("navigator")
+// var geolocation=require("")
+// navigator.geolocation.getCurrentPosition(function(position) {
+//     console.log(position)
+// });
 
 //signup
 app.post("/signup", (req, res) => {
@@ -72,13 +89,17 @@ app.put("/updateUser", (req, res) => {
 
     User.findOneAndUpdate({ _id: req.body.id }, req.body, { new: true }, (err, doc) => { //find by id and update it
         if (!err) {
-            res.json({ 'Success': 'User Edited Successfully!!' });
+            res.send(true);
         } else {
-            res.json({ 'Success': 'Error : ' + err });
+            res.send(false);
         }
     });
 
 });
+
+app.get('/checking/auth', auth, function(req, res) {
+    res.send(req.user)
+})
 
 
 app.post("/chkLogin", async(req, res) => {
@@ -109,6 +130,20 @@ app.get("/getUser/:id", (req, res) => {
     }).then(function(usr) {
         console.log("user: " + usr.name);
         res.send(usr);
+    }).catch(function(e) {
+        res.send(e)
+    })
+});
+
+app.get("/getPostImageById", (req, res) => {
+    console.log("i am here @ post img")
+    const uid = req.body.userId;
+    console.log("uid" + uid)
+    Post.find({
+        userId: uid
+    }).then(function(image) {
+        res.send(image);
+        console.log(image);
     }).catch(function(e) {
         res.send(e)
     })
@@ -153,10 +188,10 @@ var upload = multer({
     limits: { fileSize: 99999999 }
 });
 app.post('/upload', upload.single('image'), (req, res) => {
-    console.log("hello" + TotalImage)
-
+    // console.log("hello" + TotalI
+    console.log('uplado request receuved')
     res.end(JSON.stringify({
-        image: TotalImage
+        TotalImage
     }))
 });
 
@@ -168,6 +203,7 @@ app.post("/addPost", (req, res) => {
     console.log("abc: " + req.body.userId);
     var post = req.body.post;
     var image = req.body.imageName;
+    console.log(post)
 
 
     var data = new Post({
@@ -178,7 +214,7 @@ app.post("/addPost", (req, res) => {
     console.log(data);
 
     data.save().then(function() {
-        res.send('ok')
+        res.send(true)
             // uploadImage.single('files');
     }).catch(function() {
         res.send('notDone');
@@ -195,6 +231,31 @@ app.get("/getPost", (req, res) => {
         res.send(e)
     })
 });
+
+app.get("/getPost/", (req, res) => {
+    const uid = req.body.id;
+    // console.log("uid" + uid)
+    Post.findById({
+        _id: uid
+    }).then(function(usr) {
+        console.log("user: " + usr.name);
+        res.send(usr);
+    }).catch(function(e) {
+        res.send(e)
+    })
+});
+
+
+app.post('/logout', auth, async(req, res) => {
+    try {
+        console.log("i am at logout")
+        req.User.tokens = []
+        await req.User.save()
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+    }
+})
 
 
 
