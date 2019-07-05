@@ -135,9 +135,9 @@ app.get("/getUser/:id", (req, res) => {
     })
 });
 
-app.get("/getPostImageById", (req, res) => {
+app.get("/getPostImageById/:userId", (req, res) => {
     console.log("i am here @ post img")
-    const uid = req.body.userId;
+    const uid = req.params.userId;
     console.log("uid" + uid)
     Post.find({
         userId: uid
@@ -249,9 +249,9 @@ app.get("/getPost/", (req, res) => {
 app.post('/logout', auth, async(req, res) => {
     try {
         console.log("i am at logout")
-        req.User.tokens = []
-        await req.User.save()
-        res.send()
+        req.user.tokens = []
+        await req.user.save()
+        res.send(true)
     } catch (e) {
         res.status(500).send()
     }
