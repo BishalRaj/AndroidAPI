@@ -43,6 +43,9 @@ const UserSchema = new mongoose.Schema({
     aboutMe: {
         type: String
     },
+    status: {
+        type: String
+    },
     tokens: [{
         token: {
             type: String,

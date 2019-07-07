@@ -9,6 +9,7 @@ const app = express();
 const path = require('path')
 const multer = require('multer')
 const Post = require('./model/post')
+const Chart = require('./model/chart')
 var auth = require('./middleware/auth')
 
 app.set('views', 'views');
@@ -68,25 +69,9 @@ app.post("/signup", (req, res) => {
 
 
 //update user info
-app.put("/updateUser", (req, res) => {
-    // var data = new User({
-    //     id: req.body.id,
-    //     name: req.body.name,
-    //     dob: req.body.dob,
-    //     email: req.body.email,
-    //     password: req.body.password,
-    //     country: req.body.country,
-    //     image: req.body.image,
-    //     userType: 'user',
-    //     address: req.body.address,
-    //     city: req.body.city,
-    //     postal: req.body.postal,
-    //     academics: req.body.academics,
-    //     degree: req.body.degree,
-    //     university: req.body.university,
-    //     aboutMe: req.body.aboutMe
-    // });
+app.put("/updateuser", (req, res) => {
 
+    console.log(req.body)
     User.findOneAndUpdate({ _id: req.body.id }, req.body, { new: true }, (err, doc) => { //find by id and update it
         if (!err) {
             res.send(true);
@@ -96,6 +81,49 @@ app.put("/updateUser", (req, res) => {
     });
 
 });
+
+app.put("/updatechart", (req, res) => {
+
+    console.log(req.body)
+    Chart.findOneAndUpdate({ _id: req.body.id }, req.body, { new: true }, (err, doc) => { //find by id and update it
+        if (!err) {
+            res.send(true);
+        } else {
+            res.send(false);
+        }
+    });
+
+});
+
+app.delete("/deleteuser", (req, res) => {
+    console.log(req.body.id)
+    User.findByIdAndDelete({ _id: req.body.id }, function(err, doc) {
+        if (err) {
+            console.log("error")
+            res.send(false)
+        } else {
+            console.log("success")
+            res.send(true)
+        }
+
+    })
+})
+
+
+app.delete("/deletepost", (req, res) => {
+    console.log(req.body.id)
+    Post.findByIdAndDelete({ _id: req.body.id }, function(err, doc) {
+        if (err) {
+            console.log("error")
+            res.send(false)
+        } else {
+            console.log("success")
+            res.send(true)
+        }
+
+    })
+})
+
 
 app.get('/checking/auth', auth, function(req, res) {
     res.send(req.user)
@@ -136,12 +164,11 @@ app.get("/getUser/:id", (req, res) => {
 });
 
 app.get("/getPostImageById/:userId", (req, res) => {
-    console.log("i am here @ post img")
     const uid = req.params.userId;
-    console.log("uid" + uid)
+    var sortById = { _id: -1 }
     Post.find({
         userId: uid
-    }).then(function(image) {
+    }).sort(sortById).then(function(image) {
         res.send(image);
         console.log(image);
     }).catch(function(e) {
@@ -152,9 +179,10 @@ app.get("/getPostImageById/:userId", (req, res) => {
 app.post("/getPostImage", (req, res) => {
 
     const uid = req.body.userId;
+    var sortById = { _id: -1 }
     Post.find({
         userId: uid
-    }).then(function(image) {
+    }).sort(sortById).then(function(image) {
         res.send(image);
         console.log(image);
     }).catch(function(e) {
@@ -220,11 +248,25 @@ app.post("/addPost", (req, res) => {
         res.send('notDone');
     })
 });
+app.post("/addChart", (req, res) => {
+    var chart = req.body.chart;
+    var privacy = req.body.privacy;
+    var date = req.body.date;
+    var data = new Chart({
+        chart: chart,
+        privacy: privacy,
+        date: date
+    })
+    data.save().then(function() {
+        res.send(true)
+    }).catch(function() {
+        res.send('notDone');
+    })
+})
 
-// get post
-
-app.get("/getPost", (req, res) => {
-    Post.find().then(function(post) {
+app.get("/getChart", (req, res) => {
+    var sortById = { _id: -1 }
+    Chart.find().sort(sortById).then(function(post) {
         console.log(post)
         res.send(post);
     }).catch(function(e) {
@@ -232,7 +274,20 @@ app.get("/getPost", (req, res) => {
     })
 });
 
-app.get("/getPost/", (req, res) => {
+// get post
+
+app.get("/getPost", (req, res) => {
+    var sortById = { _id: -1 }
+
+    Post.find().sort(sortById).then(function(post) {
+        console.log(post)
+        res.send(post);
+    }).catch(function(e) {
+        res.send(e)
+    })
+});
+
+app.get("/getPost/:id", (req, res) => {
     const uid = req.body.id;
     // console.log("uid" + uid)
     Post.findById({
@@ -246,6 +301,7 @@ app.get("/getPost/", (req, res) => {
 });
 
 
+
 app.post('/logout', auth, async(req, res) => {
     try {
         console.log("i am at logout")
@@ -256,6 +312,20 @@ app.post('/logout', auth, async(req, res) => {
         res.status(500).send()
     }
 })
+
+//admin le user tannu
+app.get('/showuser', function(req, res) {
+    var id = req.params.id
+    User.find().then(function(user) {
+        res.send(user);
+        console.log(user);
+    }).catch(function() {
+        console.log('errot');
+    })
+});
+
+
+
 
 
 
