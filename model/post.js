@@ -9,6 +9,15 @@ const Post = mongoose.model('Post', {
     },
     image: {
         type: String
+    },
+    username: {
+        type: String
+    },
+    location: {
+        type: String
+    },
+    userImage: {
+        type: String
     }
 })
 module.exports = Post

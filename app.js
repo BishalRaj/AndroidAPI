@@ -50,6 +50,8 @@ app.post("/signup", (req, res) => {
         password: req.body.password,
         country: req.body.country,
         userType: 'user',
+        image: 'default.jpg',
+        status: 'active',
         address: req.body.address,
         city: req.body.city,
         postal: req.body.postal,
@@ -95,6 +97,19 @@ app.put("/updatechart", (req, res) => {
 
 });
 
+app.put("/updatepost", (req, res) => {
+
+    console.log(req.body)
+    Post.findOneAndUpdate({ userId: req.body.id }, req.body, { new: true }, (err, doc) => { //find by id and update it
+        if (!err) {
+            res.send(true);
+        } else {
+            res.send(false);
+        }
+    });
+
+});
+
 app.delete("/deleteuser", (req, res) => {
     console.log(req.body.id)
     User.findByIdAndDelete({ _id: req.body.id }, function(err, doc) {
@@ -127,6 +142,7 @@ app.delete("/deletepost", (req, res) => {
 
 app.get('/checking/auth', auth, function(req, res) {
     res.send(req.user)
+    console.log(req.user)
 })
 
 
@@ -230,15 +246,27 @@ app.post("/addPost", (req, res) => {
     var userId = req.body.userId;
     console.log("abc: " + req.body.userId);
     var post = req.body.post;
-    var image = req.body.imageName;
+    var imageinit = req.body.imageName;
+    if (imageinit == "") {
+        var image = "default.jpg";
+    } else {
+        var image = imageinit;
+    }
+    var username = req.body.username;
+    var location = req.body.location;
+    var userImage = req.body.userImage;
     console.log(post)
 
 
     var data = new Post({
         userId: userId,
         post: post,
-        image: image
+        image: image,
+        username: username,
+        location: location,
+        userImage: userImage
     });
+
     console.log(data);
 
     data.save().then(function() {
@@ -248,6 +276,7 @@ app.post("/addPost", (req, res) => {
         res.send('notDone');
     })
 });
+
 app.post("/addChart", (req, res) => {
     var chart = req.body.chart;
     var privacy = req.body.privacy;
@@ -323,7 +352,6 @@ app.get('/showuser', function(req, res) {
         console.log('errot');
     })
 });
-
 
 
 
